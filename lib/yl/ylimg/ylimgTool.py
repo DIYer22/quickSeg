@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from tool.toolDataStructureAndObject import FunAddMagicMethod
-from tool.logTool import colorFormat
+from tool.toolLog import colorFormat
 
 import numpy as np
 import matplotlib.pyplot as plt

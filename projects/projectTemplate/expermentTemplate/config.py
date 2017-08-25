@@ -11,8 +11,8 @@ from configManager import cf,c
 # config BEGIN
 # =============================================================================
 cf.netdir = 'unet'
-cf.jobName = None
-cf.expName = None
+cf.project = None
+cf.experment = None
 
 
 
@@ -24,14 +24,14 @@ cf.expName = None
 ##        lr=None,
 #        )
 
-cf.trainGlob =  u'G:\\experiment\\Data\\HKU-IS\\Imgs\\*.jpg'
+cf.trainGlob =  u'G:/experiment/Data/HKU-IS/Imgs/*.jpg'
 cf.toGtPath = lambda path:path.replace('.jpg','.png')
 
 cf.test = 0.1
 cf.toTestGtPath = None
 #cf.testArgs = None
 
-cf.predictGlob = u'G:\\experiment\\Data\\HKU-IS\\Imgs\\*.jpg'
+cf.predictGlob = u'G:/experiment/Data/HKU-IS/Imgs/*.jpg'
 
 # =============================================================================
 # config END
@@ -41,10 +41,10 @@ filePath = fileJoinPath(__file__)
 jobDir = (os.path.split(dirname(filePath))[-1])
 expDir = (os.path.split((filePath))[-1])
 
-cf.jobName = cf.jobName or jobDir
-cf.expName = cf.expName or expDir
+cf.project = cf.project or jobDir
+cf.experment = cf.experment or expDir
 
-cf.savename = '%s_%s_%s'%(cf.netdir,cf.expName,cf.jobName)
+cf.savename = '%s_%s_%s'%(cf.netdir,cf.experment,cf.project)
 
 cf.toTestGtPath = cf.toTestGtPath or cf.toGtPath
 #cf.testArgs = cf.testArgs or cf.trainArgs

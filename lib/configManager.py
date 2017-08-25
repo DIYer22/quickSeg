@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-import sys,os
-from os.path import abspath,join,dirname
-libpath = abspath(join(dirname(__file__),'./yl/'))
-if libpath not in sys.path:
-    sys.path = [libpath]+sys.path
+import os
 
 
-from lib import dicto, glob, imread, imsave
-from lib import show, loga, logl
+from yllibInterface import dicto, glob, imread, imsave
+from yllibInterface import show, loga, logl
 
 def getNamesAndFormat(globpath):
     paths = glob(globpath)

@@ -154,12 +154,13 @@ def smallImg(img,hh=360,ww=480, step=None,f=None):
 
 def autoSegmentWholeImg(img,simgShape,handleSimg,step=None,weightCore=None):
     '''
-    将img分割到 simgShape 的小图，执行handleSimg(simg),将结果拼接成回img形状的矩                                                                                                                                                     阵
+    将img分割到 simgShape 的小图，执行handleSimg(simg),将结果拼接成回img形状的矩阵
     img:被执行的图片
     simgShape: 小图片的shape
     handleSimg: 用于处理小图片的函数 handleSimg(simg)，比如 net.pridict(simg)
     step: 切割的步长, 默认为simgShape 可以为int|tuple(steph,stepw)|float
-    weightCore: 'avg'取平均,'gauss'结果的权重 在重叠部分可以用到 使之越靠经中心                                                                                                                                                     的权重越高 默认为直接覆盖
+    weightCore: 'avg'取平均,'gauss'结果的权重 在重叠部分可以用到 
+    使之越靠经中心的权重越高 默认为直接覆盖
     '''
     if isinstance(simgShape,int):
         hh,ww = simgShape,simgShape
@@ -190,7 +191,7 @@ def autoSegmentWholeImg(img,simgShape,handleSimg,step=None,weightCore=None):
             ws = ws[...,None]
             oldw = oldw[...,None]
     #    map(loga,[ws,sre,resoult,oldw,resoult[i:i+hh,j:j+ww]*oldw])
-        resoult[i:i+hh,j:j+ww] = (ws*sre + resoult[i:i+hh,j:j+ww]*oldw)/(ws+oldw                                                                                                                                                     )
+        resoult[i:i+hh,j:j+ww] = (ws*sre + resoult[i:i+hh,j:j+ww]*oldw)/(ws+oldw)
         weight[i:i+hh,j:j+ww] += weightCore
     #    show(resoult,weight)
     simgs = smallImg(img,hh,ww,step=step,f=f)

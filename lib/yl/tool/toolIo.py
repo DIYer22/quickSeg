@@ -9,7 +9,7 @@ def fileJoinPath(_file_,path='.'):
     返回 __file__ + 相对路径 path 后的绝对路径
     '''
     from os.path import abspath,join,dirname
-    apath = abspath(join(dirname(_file_),path))
+    apath = abspath(join(dirname(abspath(_file_)),path))
     return apath
 
 def filename(path):
