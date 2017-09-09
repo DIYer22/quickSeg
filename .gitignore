@@ -1,5 +1,8 @@
-﻿jobs/*
-!jobs/jobTemplate*
+﻿
+
+lib/yl-test
+#projects
+#! projects/projectTemplate*
 
 # Python:
 *.py[cod]

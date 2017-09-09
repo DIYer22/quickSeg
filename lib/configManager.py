@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
+import os,sys
 
-
-from yllibInterface import dicto, glob, imread, imsave
-from yllibInterface import show, loga, logl
+import yllibInterface as yl
+from yllibInterface import dicto, glob, fileJoinPath,pathjoin
+from yllibInterface import show, loga, logl, imread, imsave
 
 def getNamesAndFormat(globpath):
     paths = glob(globpath)
@@ -23,6 +23,10 @@ def setMod(mod='train'):
     if mod == 'predict':
         setPredict()
 
+    c.netpath = fileJoinPath(__file__,'../nets/'+c.netdir)
+    if c.netpath not in sys.path:
+        sys.path = [c.netpath]+sys.path
+    
 #    global name, img
 #    name = c.names[0]
 #    img = readimg(name)
@@ -31,22 +35,19 @@ def setMod(mod='train'):
 
 
 cf = dicto()
-
 c = dicto()
-#from lib import cf,c
-#
-#cf.trainGlob =  u'G:\\experiment\\Data\\HKU-IS\\Imgs\\*.jpg'
-#cf.toGtPath = lambda path:path.replace('.jpg','.png')
-#cf.args = {}
-#
-#cf.test = 0.1
-#cf.toTestGtPath = None
-#
-#cf.predictGlob = u'G:\\experiment\\Data\\HKU-IS\\Imgs\\*.jpg'
-#
-#cf.toTestGtPath = cf.toTestGtPath or cf.toGtPath
+args = dicto()
+c.args = args
+c.tmpdir = 'TMP'
+c.tmpdir = ''
 
-
+def setTrain():
+    c.trainNames,c.imgPathFormat = getNamesAndFormat(c.trainGlob)
+    if c.test and isinstance(c.test,(float,int)):
+        n = len(c.trainNames)
+        splitAt = n - (int(n*c.test) if c.test < 1 else c.test)
+        c.trainNames, c.testNames = c.trainNames[:splitAt],c.trainNames[splitAt:]
+    c.names = c.trainNames
 
 def setTest():
     if c.test and isinstance(c.test,(float,int)):
@@ -60,15 +61,8 @@ def setTest():
         raise Exception,"cf.test is not define couldn't test!" 
     c.names = c.testNames
 
-def setTrain():
-    c.trainNames,c.imgPathFormat = getNamesAndFormat(c.trainGlob)
-    if c.test and isinstance(c.test,(float,int)):
-        n = len(c.trainNames)
-        splitAt = n - (int(n*c.test) if c.test < 1 else c.test)
-        c.trainNames, c.testNames = c.trainNames[:splitAt],c.trainNames[splitAt:]
-    c.names = c.trainNames
 def setPredict():
-    c.names,c.imgPathFormat = getNamesAndFormat(c.trainGlob)
+    c.names,c.imgPathFormat = getNamesAndFormat(c.predictGlob)
     
 #c.update(cf)
 #
@@ -85,6 +79,22 @@ readgt = c.readgt = lambda name:imread(c.togt(name))
 
 getImgGtNames = c.getImgGtNames = lambda names:[(c.toimg(n),c.togt(n)) for n in names]
 
+def doc(mod):
+    if '__doc__' in dir(mod):
+        print mod.__doc__
+    else:
+        help(mod)
+
+def makdirs(dirr):
+    if not os.path.isdir(dirr):
+        os.makedirs(dirr)
+    
+def makeTrainEnv(args):
+    makdirs(os.path.dirname(args.prefix))
+        
+def makePredictEnv(args):
+    makdirs(args.out)
+makeTestEnv = makePredictEnv
 
 if __name__ == '__main__':
 

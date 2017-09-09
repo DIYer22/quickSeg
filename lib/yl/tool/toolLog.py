@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import os,sys,time
-from toolDataStructureAndObject import callList,dicto,FunAddMagicMethod
+from toolDataStructureAndObject import addCall,dicto,FunAddMagicMethod
 
 def localTimeStr():
     '''
@@ -147,6 +147,42 @@ perr = pred
 def ignoreWarning():
     from warnings import filterwarnings
     filterwarnings('ignore')
+
+
+class LogLoopTime():
+    '''
+    记录循环信息的对象 主要的信息有每个循环时间和进度
+    names: 用于循环的list，tuple
+    digits: 时间的保留位数 可为负数
+    loged: 是否直接打印
+    
+    使用时候 在循环最后加上 logLoopTime(name) 即可
+    '''
+    def __init__(self,names=None,digits=3,loged=True):
+        self.ns = names
+        self.begin = self.t = time.time()
+        self.digits = digits
+        self.loged = loged
+        self.count = 0
+    def __call__(self,name):
+        digits = self.digits
+        t = time.time()
+        dt = t - self.t
+        self.t = t
+        times = ('%.'+str(digits)+'f')%dt if digits > 0 else '%.2fE%d'%(dt/10**abs(digits-1),abs(digits-1))
+        if self.ns is None:
+            s = 'No.%d  %s time:%s'%(self.count,name, times)
+            self.count += 1
+        else:
+            names = self.ns
+            ind = float(names.index(name))
+            self.n = len(names)
+            s = '%d/%d %.2f%%  %s time:%s'%(ind,self.n,
+                                            (ind*100./self.n),name, times)
+        if self.loged:
+            log(s)
+        return s
+    log = __call__
 
 class LogException():
     '''
@@ -342,13 +378,13 @@ class SuperG(Gs):
         self[name] = v
     @property
     def keys(self):
-        return callList(dict.keys(self))
+        return addCall(dict.keys(self))
     @property
     def values(self):
-        return callList(dict.values(self))
+        return addCall(dict.values(self))
     @property
     def items(self):
-        return callList(dict.items(self))
+        return addCall(dict.items(self))
 GlobalG = SuperG
 g = SuperG()
 config = dicto()

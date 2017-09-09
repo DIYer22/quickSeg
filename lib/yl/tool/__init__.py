@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import os, sys, time
 
 from toolLog import (stdout, log, tounicode, ignoreWarning,
-                     LogException, SuperG, g, cf)
+                     LogException, LogLoopTime, SuperG, g, cf)
 from toolLog import colorFormat, pblue, pred, pdanger, perr, pinfo
 from toolLog import localTimeStr, gmtTimeStr
 
@@ -17,9 +17,9 @@ from toolIo import (listdir, filename, openread, openwrite, replaceTabInPy, save
 
 from toolSystem import importAllFunCode, crun, frun, getArgvDic
 
-from toolFuncation import dynamicWraps, setInterval, setTimeOut
+from toolFuncation import getFunName, dynamicWraps, setInterval, setTimeOut
 
-from toolTools import filterList, findint
+from toolTools import filterList, findints
 
 from glob import glob
 from collections import namedtuple

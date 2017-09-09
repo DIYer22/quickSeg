@@ -6,6 +6,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tool.toolTools import filterList
 
+def savenp(path, arr):
+    '''压缩存储 np.array 为path路径 
+    ps: int, bool 压缩效果佳 可达到20倍'''
+    np.savez_compressed(path, arr)
+def loadnp(path):
+    '''读取path路径下的 .npz 返回 np.array'''
+    if path[-4:] != '.npz':
+        path += '.npz'
+    compress = np.load(path)
+    arr = compress[compress.files[0]]
+    compress.close()
+    return arr 
+    
 def __draw3dSurface(X,Y,Z):
     from mpl_toolkits.mplot3d import Axes3D
     from matplotlib import cm
@@ -24,7 +37,10 @@ def __draw3dSurface(X,Y,Z):
     plt.show()
 
 
-def polt3dSurface(Z):
+def plot3dSurface(Z):
+    '''
+    对二维数组Z 画出3d直方图 
+    '''
     m, n = Z.shape
     X = range(n)
     Y = range(m)
@@ -32,7 +48,7 @@ def polt3dSurface(Z):
     __draw3dSurface(X,Y,Z)
 
 def __getNumpyType(typee='int'):
-    finds = eval('('+', '.join(['np.'+mu for mu in filterList(dir(np),typee)])+')')
+    finds = eval('('+', '.join(['np.'+mu for mu in filterList(typee, dir(np))])+')')
     types = filter(lambda x:type(x)==type,finds)
     return types
     
@@ -58,3 +74,12 @@ def isNumpyType(array, typee='int'):
         return array.dtype in (npStrTypes)
     raise Exception,"isNumpyType(array, typee) array must be numpy,"+\
     "typee must be tuple or [bool, int, float, str, unicode] "
+
+if __name__ == '__main__':
+    
+    
+    
+    pass
+    
+    
+    

@@ -17,7 +17,20 @@ def listToBatch(listt, batch):
     if left:
         ziped.append(tail)
     return ziped
-    
+
+CALL_CLASS_CACHE={}
+def addCall(instance):
+    '''
+    给可以被自己init 的 instance增加__call__ 返回自己
+    '''
+    t = type(instance)
+    if t not in CALL_CLASS_CACHE:
+        class T(t):
+            def __call__(self):
+                return self
+        CALL_CLASS_CACHE[t]=T
+    return CALL_CLASS_CACHE[t](instance)
+
 class FunAddMagicMethodCore(dict):
     '''magic 未解之谜 疑惑
     >>> z=FunAddMagicMethod(zip)
@@ -56,12 +69,6 @@ class FunAddMagicMethod(FunAddMagicMethodCore):
             return self[0].__getattribute__(name)
         return FunAddMagicMethodCore.__getattribute__(self,name)
     
-class callList(list):
-    '''
-    用于dicto的可call返回自己
-    '''
-    def __call__(self):
-        return self
 class dicto(dict):
     '''
     类似JavaScript对象的超级字典，可以动态添加属性
@@ -82,13 +89,13 @@ class dicto(dict):
         self[name] = v
     @property
     def keys(self):
-        return callList(dict.keys(self))
+        return addCall(dict.keys(self))
     @property
     def values(self):
-        return callList(dict.values(self))
+        return addCall(dict.values(self))
     @property
     def items(self):
-        return callList(dict.items(self))
+        return addCall(dict.items(self))
 SuperDict = dicto
 def dicToObj(dic):  
     '''

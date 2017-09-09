@@ -3,6 +3,14 @@
 from __future__ import unicode_literals
 import time
 
+def getFunName(fun):
+    '''
+    获得函数的名称
+    '''
+    if '__name__' in dir(fun):
+        return fun.__name__
+    return '[unkonw]'
+
 def dynamicWraps(func):
     '''
     decorator 动态规划 装饰器

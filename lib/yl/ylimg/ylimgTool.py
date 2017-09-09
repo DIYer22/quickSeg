@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from tool.toolDataStructureAndObject import FunAddMagicMethod
 from tool.toolLog import colorFormat
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -22,8 +23,13 @@ shape if (isinstance(shape,tuple) or isinstance(shape,list)
 )else (shape,shape))*maxx).astype(int)
 r = randomm(4,4)
 
-normalizing = lambda a:(a.astype(float)-a.min())/(a.max() - a.min())
-uint8 = lambda img:((img)*255.999999).astype(np.uint8)
+def normalizing(arr):
+    a = arr.astype(float)
+    minn = a.min()
+    return (a-minn)/(a.max() - minn)
+def uint8(img):
+    '''将0～1的float或bool值的图片转换为uint8格式'''
+    return ((img)*255.999).astype(np.uint8)
 
 greyToRgb = lambda grey:grey.repeat(3).reshape(grey.shape+(3,)) 
 
@@ -103,8 +109,27 @@ def show(*imgs,**kv):
         kv['cmap'] = 'gray'
     imgls = listToImgLists(imgs)
     showImgLists(imgls,**kv)
-
 show = FunAddMagicMethod(show)
+
+
+def showb(*arr,**__kv):
+    '''
+    use shotwell to show picture
+    Parameters
+    ----------
+    arr : np.ndarray or path
+    '''
+    if len(arr)!=1:
+        map(lambda ia:showb(ia[1],tag=ia[0]),enumerate(arr))
+        return 
+    arr = arr[0]
+    if isinstance(arr,np.ndarray):
+        path = '/tmp/tmp-%s.png'%__kv.get('tag','')
+        imsave(path,arr)
+        arr = path
+    cmd = 'shotwell %s &'%arr
+    os.system(cmd)
+showb = FunAddMagicMethod(showb)
 
 def loga(array):
     '''
