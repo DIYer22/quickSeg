@@ -6,6 +6,7 @@ from tool.toolDataStructureAndObject import FunAddMagicMethod
 from tool.toolLog import colorFormat
 
 import os
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -119,15 +120,16 @@ def showb(*arr,**__kv):
     ----------
     arr : np.ndarray or path
     '''
+    
     if len(arr)!=1:
         map(lambda ia:showb(ia[1],tag=ia[0]),enumerate(arr))
         return 
     arr = arr[0]
     if isinstance(arr,np.ndarray):
-        path = '/tmp/tmp-%s.png'%__kv.get('tag','')
+        path = '/tmp/tmp-%s.png'%len(glob.glob('/tmp/tmp-*.png'))
         imsave(path,arr)
         arr = path
-    cmd = 'shotwell %s &'%arr
+    cmd = 'shotwell "%s" &'%arr
     os.system(cmd)
 showb = FunAddMagicMethod(showb)
 

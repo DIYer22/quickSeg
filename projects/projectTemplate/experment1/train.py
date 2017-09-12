@@ -15,14 +15,15 @@ setMod('train')
 from configManager import args
 args.names = getImgGtNames(c.names)[:]
 args.prefix = c.weightsPrefix
-args.classn = 2
-args.step = 64*7
+args.classn = 3
+args.window = (64*5,64*7)
+326* 500
 # =============================================================================
 # config BEGIN
 # =============================================================================
 args.update(
-        batch=5,
-        epoch=10,
+        batch=6,
+        epoch=30,
         resume=0,
         )
 # =============================================================================

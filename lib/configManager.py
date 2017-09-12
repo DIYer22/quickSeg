@@ -18,10 +18,10 @@ def setMod(mod='train'):
     c.mod = mod
     if mod == 'train':
         setTrain()
+    if mod == 'val':
+        setVal()
     if mod == 'test':
         setTest()
-    if mod == 'predict':
-        setPredict()
 
     c.netpath = fileJoinPath(__file__,'../nets/'+c.netdir)
     if c.netpath not in sys.path:
@@ -43,31 +43,31 @@ c.tmpdir = ''
 
 def setTrain():
     c.trainNames,c.imgPathFormat = getNamesAndFormat(c.trainGlob)
-    if c.test and isinstance(c.test,(float,int)):
+    if c.val and isinstance(c.val,(float,int)):
         n = len(c.trainNames)
-        splitAt = n - (int(n*c.test) if c.test < 1 else c.test)
-        c.trainNames, c.testNames = c.trainNames[:splitAt],c.trainNames[splitAt:]
+        splitAt = n - (int(n*c.val) if c.val < 1 else c.val)
+        c.trainNames, c.valNames = c.trainNames[:splitAt],c.trainNames[splitAt:]
     c.names = c.trainNames
 
-def setTest():
-    if c.test and isinstance(c.test,(float,int)):
+def setVal():
+    if c.val and isinstance(c.val,(float,int)):
         c.allNames,c.imgPathFormat = getNamesAndFormat(c.trainGlob)
         n = len(c.allNames)
-        splitAt = n - (int(n*c.test) if c.test < 1 else c.test)
-        c.trainNames, c.testNames = c.allNames[:splitAt],c.allNames[splitAt:]
-    elif isinstance(c.test,(str,unicode)):
-        c.testNames,c.imgPathFormat = getNamesAndFormat(c.test)
+        splitAt = n - (int(n*c.val) if c.val < 1 else c.val)
+        c.trainNames, c.valNames = c.allNames[:splitAt],c.allNames[splitAt:]
+    elif isinstance(c.val,(str,unicode)):
+        c.valNames,c.imgPathFormat = getNamesAndFormat(c.val)
     else:
-        raise Exception,"cf.test is not define couldn't test!" 
-    c.names = c.testNames
+        raise Exception,"cf.val is not define couldn't val!" 
+    c.names = c.valNames
 
-def setPredict():
-    c.names,c.imgPathFormat = getNamesAndFormat(c.predictGlob)
+def setTest():
+    c.names,c.imgPathFormat = getNamesAndFormat(c.testGlob)
     
 #c.update(cf)
 #
 #setMod('train')
-#setMod('test')
+#setMod('val')
 
 indexOf = c.indexOf = lambda name:c.names.index(name)
 # toimg, togt 将 name 转换为对应path
@@ -92,9 +92,9 @@ def makdirs(dirr):
 def makeTrainEnv(args):
     makdirs(os.path.dirname(args.prefix))
         
-def makePredictEnv(args):
+def makeTestEnv(args):
     makdirs(args.out)
-makeTestEnv = makePredictEnv
+makeValEnv = makeTestEnv
 
 if __name__ == '__main__':
 

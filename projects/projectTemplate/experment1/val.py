@@ -7,19 +7,20 @@ import lib
 from lib import dicto, glob, getArgvDic, findints,pathjoin
 from lib import show, loga, logl, imread, imsave
 from lib import Evalu,diceEvalu
+from lib import *
 from configManager import (getImgGtNames, indexOf, readgt, readimg, 
-                           setMod, togt, toimg, makeTestEnv, doc)
+                           setMod, togt, toimg, makeValEnv, doc)
 from train import c, cf, args
-setMod('test')
+setMod('val')
 
-args.out = pathjoin(c.tmpdir,'test/png')
+args.out = pathjoin(c.tmpdir,'val/png')
 
 # =============================================================================
 # config BEGIN
 # =============================================================================
 args.update(
         restore=-1,
-#        step=None,
+        step=None,
         
         )
 # =============================================================================
@@ -30,8 +31,7 @@ if args.restore == -1:
     pas = [p[len(args.prefix):] for p in glob(args.prefix+'*')]
     args.restore = len(pas) and max(map(lambda s:len(findints(s)) and findints(s)[-1],pas))
 
-makeTestEnv(args)
-
+makeValEnv(args)
 
 if __name__ == '__main__':
     import predictInterface 
@@ -40,20 +40,25 @@ if __name__ == '__main__':
 #    c.predict = predict
     e = Evalu(diceEvalu,
 #              evaluName='restore-%s'%restore,
-              testNames=c.names,
+              valNames=c.names,
 #              loadcsv=1,
               logFormat='dice:{dice:.3f}, loss:{loss:.3f}',
               sortkey='loss',
 #              loged=False,
 #              saveResoult=False,
               )
-    for name in c.names:
+    c.names.sort(key=lambda x:readgt(x).shape[0])
+    for name in c.names[:]:
+        img,gt = readimg(name),readgt(name)
         prob = predict(toimg(name))
-        divInt8 = ((prob[...,1]-prob[...,0])*127).clip(-127,127).astype(np.int8)
-        re = divInt8>0
-        img,gt = readimg(name),readgt(name)>.5
+        re = prob.argmax(2)
+        ind = re==2
+        re[re==1] = 2
+        re[ind]=1
         e.evalu(re,gt,name)
-        show(img,gt,re)
+        gtc = labelToColor(gt,[[0,0,0],[1.,0,0],[1,1,1]])
+        rec = labelToColor(re,[[0,0,0],[1.,0,0],[1,1,1]])
+        show(img,gtc,rec)
 #        diff = binaryDiff(re,gt)
 #        show(img,diff,re)
 #        show(img,diff)

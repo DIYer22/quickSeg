@@ -65,7 +65,7 @@ def diceDivEvalu(probDiv,gt):
 
 class Evalu(pd.DataFrame):
     '''
-# 用于测试的工具类Evalu
+# 用于验证的工具类Evalu
 继承自pandas.DataFrame， 会自动保存每个样本 resoult 及其评估结果，能对评估结果进行分析
 并能以DataFrame的形似对评估结果操作与分析
 常用缩写：
@@ -87,7 +87,7 @@ class Evalu(pd.DataFrame):
 分析与可视化 :
     总结 :evalu.summary()
     可视化评估项的分布 :evalu.distr(key)
-一键删除测试产生的所有文件 :
+一键删除验证产生的所有文件 :
     evalu.removeFiles()
 继承 pandas.DataFrame 的所有操作 :
     以df形似 分析evalu后的结果 
@@ -95,10 +95,10 @@ class Evalu(pd.DataFrame):
 
 Examples
 --------
-names = glob("/home/[to test path]/*.jpg")
+names = glob("/home/[to val path]/*.jpg")
 e = Evalu(binaryEvalu,
           evaluName='try-example',
-          testNames=names,
+          valNames=names,
           logFormat='acc:{acc:.4f}, loss:{loss:.4f}',
           sortkey='acc'
           )
@@ -110,13 +110,13 @@ e.distr()
     '''
     def __init__(self,evaluFun,
                  evaluName='null',
-                 testNames=None,
+                 valNames=None,
                  logFormat=None,
                  sortkey=None,
                  loadcsv=False,
                  saveResoult = True,
                  loged=True,
-                 savepath='./test/',
+                 savepath='./val/',
                  ):
         '''
 Parameters
@@ -127,8 +127,8 @@ evaluFun : funcation
     例如 evaluFun(re,gt) => return {'key1':value1,'key2':value2}
 evaluName : str, default 'null'
     实例的名称
-testNames : list or tuple, default None
-    测试集所有样本的名字
+valNames : list or tuple, default None
+    验证集所有样本的名字
 logFormat : str, default None
     fromat格式 用于规范评估结果的显示效果  
     会执行 print logFormat.format(**evaluFun(re,gt))
@@ -143,14 +143,14 @@ saveResoult : bool, default True
     是否保存resoult 默认为True
 loged : bool, default True
     是否每次评估都打印出结果 默认为打印
-savepath : str, default './test/'
+savepath : str, default './val/'
     保存的路径 若loadcsv 为path 则为 dirname(loadcsv)
 
 Examples
 --------
 e = Evalu(binaryEvalu,
           evaluName='binary segment evalu',
-          testNames=names,
+          valNames=names,
           logFormat='acc:{acc:.4f}, loss:{loss:.4f}',
           sortkey='loss'
           )
@@ -160,8 +160,8 @@ e = Evalu(binaryEvalu,
         self.evaluName = evaluName
         self.evaluFun = evaluFun
         self.logFormat = logFormat
-        self.logLoop = LogLoopTime(testNames,loged=False)
-        self.n = -1 if testNames is None else len(testNames)
+        self.logLoop = LogLoopTime(valNames,loged=False)
+        self.n = -1 if valNames is None else len(valNames)
         self.sortkey = sortkey
         self.loged = loged
         self.saveResoult = saveResoult

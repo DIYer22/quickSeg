@@ -10,19 +10,19 @@ from configManager import cf,c
 # =============================================================================
 # config BEGIN
 # =============================================================================
-cf.netdir = 'res-unet1'
+cf.netdir = 'res-unet1-simg'
 cf.project = None
 cf.experment = None
 
 
-cf.trainGlob = u'/home/dl/experiment/salDataset/SalBenchmark-master/Data/HKU-IS/Imgs/*.jpg'
+cf.trainGlob = u'/home/dl/datasOnWindows/sealandship/train/*.jpg'
 cf.toGtPath = lambda path:path.replace('.jpg','.png')
 
-cf.test = 0.1
-cf.toTestGtPath = None
+cf.val = u'/home/dl/datasOnWindows/sealandship/test/*.jpg'
+cf.toValGtPath = None
 
-#cf.predictGlob = u'G:/experiment/Data/HKU-IS/Imgs/*.jpg'
-#cf.predictGlob = '/home/dl/datasOnWindows/carMaskData/test/*.jpg'
+#cf.testGlob = u'G:/experiment/Data/HKU-IS/Imgs/*.jpg'
+#cf.testGlob = '/home/dl/datasOnWindows/carMaskData/test/*.jpg'
 # =============================================================================
 # config END
 # =============================================================================
@@ -37,8 +37,8 @@ cf.experment = cf.experment or expDir
 
 cf.savename = '%s-%s-%s'%(cf.netdir,cf.experment,cf.project)
 
-cf.toTestGtPath = cf.toTestGtPath or cf.toGtPath
-#cf.testArgs = cf.testArgs or cf.trainArgs
+cf.toValGtPath = cf.toValGtPath or cf.toGtPath
+#cf.valArgs = cf.valArgs or cf.trainArgs
 
 
 
