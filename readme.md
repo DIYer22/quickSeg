@@ -1,26 +1,31 @@
 # deep517：基于Python的图像分割脚手架+模型库
 
+## 目录：
+
+1. Introduction
+ 1. 环境
+ 1. 常用缩写
+1. 文件结构
+1. 面向网络使用者
+1. 面向网络开发者
+
+
 ## Introduction
 deep517：基于Python的图像分割脚手架+模型库
 
 ### 环境
 
-* `Python 2.7`
+* `Python 2.7 x64`
 
-* 依赖：`pip install -r requirment.txt`
+* 依赖：`pip install -r requirements.txt`
 
-* 系统：建议`ubuntu`
+* 系统支持程度：`ubuntu` > `windows`
 
 
-* 环境友好程度:`spyder@Anaconda2` > `Ipython` > `Python`
+* 环境友好程度:`Ipython@spyder` > `Ipython` > `Python`
 
 库中的绝大多数函数都有文档，
 在Ipython中 大多数类都可以通过 对象名称后面加一个问号的形式 （即：`object?`） 获取使用说明文档
-
-### 常用缩写：
-    * img = image, 表示图片
-    * gt = GroundTruth，用于评测的真值
-    * re = resoult，模型生成的，需要评测的样本
 
 ## 文件结构
 
@@ -161,3 +166,11 @@ weightCore: 'avg'取平均,'gauss'结果的权重 在重叠部分可以用到
 File:      deep517/lib/yl/ylml/ylmlTest.py
 Type:      function
 ```
+
+## 附录
+
+
+### 常用缩写：
+    * img = image, 表示图片
+    * gt = GroundTruth，用于评测的真值
+    * re = result，模型生成的，需要评测的样本

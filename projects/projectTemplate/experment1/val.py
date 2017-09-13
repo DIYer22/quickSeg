@@ -20,7 +20,7 @@ args.out = pathjoin(c.tmpdir,'val/png')
 # =============================================================================
 args.update(
         restore=-1,
-        step=None,
+        step=.2,
         
         )
 # =============================================================================
@@ -49,16 +49,11 @@ if __name__ == '__main__':
               )
     c.names.sort(key=lambda x:readgt(x).shape[0])
     for name in c.names[:]:
-        img,gt = readimg(name),readgt(name)
+        img,gt = readimg(name),readgt(name)>0
         prob = predict(toimg(name))
         re = prob.argmax(2)
-        ind = re==2
-        re[re==1] = 2
-        re[ind]=1
         e.evalu(re,gt,name)
-        gtc = labelToColor(gt,[[0,0,0],[1.,0,0],[1,1,1]])
-        rec = labelToColor(re,[[0,0,0],[1.,0,0],[1,1,1]])
-        show(img,gtc,rec)
+        show(img,gt,re)
 #        diff = binaryDiff(re,gt)
 #        show(img,diff,re)
 #        show(img,diff)

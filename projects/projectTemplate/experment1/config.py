@@ -15,10 +15,10 @@ cf.project = None
 cf.experment = None
 
 
-cf.trainGlob = u'/home/dl/datasOnWindows/sealandship/train/*.jpg'
-cf.toGtPath = lambda path:path.replace('.jpg','.png')
+cf.trainGlob = u'/home/dl/datasOnWindows/carMaskData/train/*.jpg'
+cf.toGtPath = lambda path:path.replace('train','train_masks').replace('.jpg','_mask.gif')
 
-cf.val = u'/home/dl/datasOnWindows/sealandship/test/*.jpg'
+cf.val = 0.1
 cf.toValGtPath = None
 
 #cf.testGlob = u'G:/experiment/Data/HKU-IS/Imgs/*.jpg'
@@ -49,7 +49,11 @@ c.cf = cf
 c.weightsPrefix = fileJoinPath(__file__,pathjoin(c.tmpdir,'weihgts/%s-%s'%(c.netdir,c.experment)))
 #show- map(readimg,c.names[:10])
 if __name__ == '__main__':
-        
+    setMod('train')
+    img = readimg(c.names[0])
+    gt = readgt(c.names[0])
+    show(img,gt)
+    loga(gt)
     pass
 
 

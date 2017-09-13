@@ -50,7 +50,6 @@ def imgAug(image,gt,prob=.5):
     return image,gt
 
 def handleImgGt(imgs, gts,):
-    g.imgs = imgs[0].copy()
     for i in range(len(imgs)):
 #        if np.random.randint(2):
 #            imgs[i] = np.fliplr(imgs[i])
@@ -59,6 +58,8 @@ def handleImgGt(imgs, gts,):
 #            imgs[i] = np.flipud(imgs[i])
 #            gts[i] = np.flipud(gts[i])
         imgs[i],gts[i] = imgAug(imgs[i],gts[i])
+    if args.classn ==2:
+        gts = gts >.5
     g.im=imgs;g.gt =gts
     imgs = imgs.transpose(0,3,1,2)/255.
     mximgs = map(mx.nd.array,[imgs])
@@ -130,14 +131,14 @@ args.names = args.names[:]
 gen = GenSimgInMxnet(args.names, args.simgShape, 
                       handleImgGt=handleImgGt,
                       batch=args.batch,
-                      cache=len(args.names),
+#                      cache=len(args.names),
                       iters=args.epochSize
                       )
 #gen = GenSimgInMxnet(args.names,c.batch,handleImgGt=imgGtAdd0Fill(c.step))
 g.gen = gen
-total_steps = len(c.names) * args.epoch
+total_steps = gen.totaln * args.epoch
 lr_sch = mx.lr_scheduler.MultiFactorScheduler(
-    step=[total_steps // 2, total_steps // 4 * 3], factor=0.1)
+    step=[total_steps // 3, total_steps // 3 * 2], factor=0.1)
 def train():
     mod.fit(
         gen,
