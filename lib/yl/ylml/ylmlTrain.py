@@ -41,7 +41,7 @@ class GenSimg(Iterator):
         img = imread(jpg)
         h,w = img.shape[:2]
         if cache is None:
-            cache = int(1e9/img.nbytes)
+            cache = max(1,int(1e9/img.nbytes))
         cache = min(cache,len(imggts))
         self.maxPerCache = int(cache*(h*w)*1./(hh*ww))* timesPerRead/batch
         self.cache = cache

@@ -2,11 +2,12 @@
 import os,sys
 
 import yllibInterface as yl
-from yllibInterface import dicto, glob, fileJoinPath,pathjoin
-from yllibInterface import show, loga, logl, imread, imsave
+from yllibInterface import dicto, glob, fileJoinPath,pathjoin,addPathToSys
+from yllibInterface import show, loga, tree, imread, imsave
 
 def getNamesAndFormat(globpath):
     paths = glob(globpath)
+    assert len(paths),'glob.golb("%s") is Empty!'%globpath
     rind = 1-len(globpath)+(globpath.rindex('*'))
     imgPathFormat = globpath[:rind-1]+'%s'+globpath[rind:]
     names = sorted([os.path.basename(p)[:rind] for p in paths])
@@ -60,6 +61,7 @@ def setVal():
     else:
         raise Exception,"cf.val is not define couldn't val!" 
     c.names = c.valNames
+    c.toGtPath = c.toValGtPath
 
 def setTest():
     c.names,c.imgPathFormat = getNamesAndFormat(c.testGlob)
@@ -75,8 +77,12 @@ toimg = c.toimg = lambda name: c.imgPathFormat%(name)
 togt = c.togt = lambda name:c.toGtPath(c.toimg(name))
 
 readimg = c.readimg = lambda name:imread(c.toimg(name))
-readgt = c.readgt = lambda name:imread(c.togt(name))
-
+def readgt(name):
+    gt = imread(c.togt(name))
+    if 'args' in c and 'classn' in c.args and c.args.classn == 2:
+        return gt > .5
+    return gt
+c.readgt = readgt
 getImgGtNames = c.getImgGtNames = lambda names:[(c.toimg(n),c.togt(n)) for n in names]
 
 def doc(mod):
@@ -88,7 +94,12 @@ def doc(mod):
 def makdirs(dirr):
     if not os.path.isdir(dirr):
         os.makedirs(dirr)
-    
+def addUpDirectoryToSys(_file_):
+    '''
+    add up directory to your sys.path 
+    '''
+    return addPathToSys(_file_, '..')
+
 def makeTrainEnv(args):
     makdirs(os.path.dirname(args.prefix))
         
@@ -97,5 +108,4 @@ def makeTestEnv(args):
 makeValEnv = makeTestEnv
 
 if __name__ == '__main__':
-
     pass

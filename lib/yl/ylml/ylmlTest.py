@@ -101,7 +101,52 @@ def classDiff(rem,gtm,colors=None,size=.15,reMod=False,lines=50,bound=True):
                                        size=size,replace=True,lines=lines)
     return rgb
 
+def confusionMatrix(re,gt,classn=None):
+    '''求混淆矩阵（confusion matrix）
+    
+    Parameters
+    ----------
+    re : np.ndarray
+        resoult , 预测的标签
+    gt : np.ndarray 
+        ground Truth, 值为每个像素的类别
+    classn : int,  default None
+        总类别数目 默认为 max(re.max(), gt.max())
+    '''
+    if classn is None:
+        classn = max(re.max(), gt.max())
+    ma = np.zeros((classn,classn),int)
+    for ind in range(classn):
+        row = np.histogram(re[(gt==ind)],classn,range=(0,classn))[0]
+        ma[ind][:] = row[:]
+    return ma
 
+
+
+def f1Score(re,gt,classn):
+    '''求各个类别的f1Score 
+    先求混淆矩阵（confusion matrix）
+    
+    Parameters
+    ----------
+    re : np.ndarray
+        resoult or prob, 预测的标签或h*w*n 的概率矩阵
+    gt : np.ndarray 
+        ground Truth, 值为每个像素的类别
+    classn : int
+        总类别数目
+    '''
+    if re.ndim == 3:
+        re = re.argmax(2)
+    cma = confusionMatrix(re,gt,classn)
+    ma = np.float64(cma)
+    tp = ma[range(classn),range(classn)]
+    fp = ma.sum(0)-tp
+    fn = ma.sum(1)-tp
+    precision = tp/(tp+fp)
+    recall = tp/(tp+fn)
+    f1 = 2*precision*recall/(precision+recall)
+    return f1
 
 @dynamicWraps
 def getWeightCore(hh,ww=None,mappFun=None,seta=0.5):
@@ -124,15 +169,38 @@ def getWeightCore(hh,ww=None,mappFun=None,seta=0.5):
     weightCore = np.zeros((hh,ww))
     return mapp(lambda x,i,j:mappFun(i,j),weightCore,need_i_j=True)
 
-def smallImg(img,hh=360,ww=480, step=None,f=None):
+def smallImg(img,simgShape, step=None,f=None):
     '''
-    将大图切割成固定大小的小图
-        step:切割的步长, 默认为(hh,ww) 可以为int|tuple(steph,stepw)|float
-        f: 若有f 则执行f(simg,i,j),其中：
+    将大图切割成固定大小的小图,使产生的小图能覆盖大图的所有面积
+
+    Parameters
+    ----------
+    simgShape : int or tuple or float
+        小图片的shape,为int时候 自动转换为(simgShape, simgShape)
+        为float时候 转换为 (int(h*simgShape),int(w*simgShape))
+    step : float or int or tuple(steph,stepw),defalut None
+        h和w方向上 相邻切割的步长, 默认为simgShape 
+        float : (int(step*simgShape[0]),int(step*simgShape[1]))
+        int : (step, step)
+    fun : funcatin, default None
+        若有fun 则执行fun(simg,i,j)
+        其中：
             simg:被切割的小图片
             i: simg所在img的row
             j: simg所在img的col
+    
+    Returns
+    -------
+    simgs : list of ndarray
+        切割出来的小图的list
     '''
+    h,w = img.shape[:2]
+    if isinstance(simgShape,float):
+        hh,ww = (int(h*simgShape),int(w*simgShape))
+    if isinstance(simgShape,int):
+        hh,ww = simgShape,simgShape
+    if isinstance(simgShape,(tuple,list)):
+        hh,ww = simgShape
     if step is None:
         steph,stepw = hh,ww
     if isinstance(step,int):
@@ -141,7 +209,6 @@ def smallImg(img,hh=360,ww=480, step=None,f=None):
         steph,stepw = int(hh*step),int(ww*step)
     if isinstance(step,(tuple,list)):
         steph,stepw = step
-    h,w = img.shape[:2]
     simgs = []
     for i in range(0,h-hh,steph)[:]+[h-hh]:
         for j in range(0,w-ww,stepw)[:]+[w-ww]:
@@ -154,22 +221,44 @@ def smallImg(img,hh=360,ww=480, step=None,f=None):
 
 def autoSegmentWholeImg(img,simgShape,handleSimg,step=None,weightCore=None):
     '''
-    将img分割到 simgShape 的小图，执行handleSimg(simg),将结果拼接成回img形状的矩阵
-    img:被执行的图片
-    simgShape: 小图片的shape
-    handleSimg: 用于处理小图片的函数 handleSimg(simg)，比如 net.pridict(simg)
-    step: 切割的步长, 默认为simgShape 可以为int|tuple(steph,stepw)|float
-    weightCore: 'avg'取平均,'gauss'结果的权重 在重叠部分可以用到 
-    使之越靠经中心的权重越高 默认为直接覆盖
+    将img分割到 shape为simgShape 的小图simg，执行handleSimg(simg)
+    将所有handleSimg(simg)的结果自动拼接成img形状的ndarray并返回
+    
+    Parameters
+    ----------
+    img : ndarray
+        需要被分割处理的图片
+    simgShape : int or tuple
+        小图片的shape,为int时候 自动转换为(simgShape, simgShape)
+    handleSimg : funcation
+        用于处理shape为simgShape的小图片的函数 
+        此函数需要接受一个ndarray作为参数并返回shape[:2]同为为(h,w)的ndarray
+        即：handleSimg(simg)=>ndarray，比如 net.pridict(simg)
+    step : float or int or tuple(steph,stepw),defalut None
+        h和w方向上 相邻切割的步长, 默认为simgShape 
+        float : (int(step*simgShape[0]),int(step*simgShape[1]))
+        int : (step, step)
+    weightCore : {None,'avg','gauss',ndarray}, defalut None 
+        对于两个simg图片重叠部分进行融合时候的各自权重
+        默认取距离simg中心最近的部分
+       'gauss':在重叠部分 采用高斯分布 使之离simg中心越远，权重越低
+       'avg':重叠部分取平均
+    
+    Returns
+    -------
+    result : ndarray
+        shape[:2]等于img.shape[:2]的ndarray
     '''
     if isinstance(simgShape,int):
         hh,ww = simgShape,simgShape
     hh,ww = simgShape
     h,w = img.shape[:2]
-    if weightCore in ['avg']:
-        weightCore = np.ones((hh,ww))
+    if weightCore is None:
+        pass
     elif isinstance(weightCore,np.ndarray):
         pass
+    elif weightCore in ['avg']:
+        weightCore = np.ones((hh,ww))
     elif weightCore in ['guss','gauss']:
         weightCore = getWeightCore(hh,ww)
     else:
@@ -177,28 +266,30 @@ def autoSegmentWholeImg(img,simgShape,handleSimg,step=None,weightCore=None):
     weight = np.zeros((h,w))
     class c:
         re=None
+        near=None
     def f(simg,i,j):
         sre = handleSimg(simg)
         if c.re is None:
             c.re = np.zeros((h,w)+sre.shape[2:],sre.dtype)
         if weightCore is None:
-            c.re[i:i+hh,j:j+ww]= sre
+            if c.near is None:
+                y,x = np.mgrid[:hh,:ww]
+                c.near = 1-((x*1./ww-1./2)**2+(y*1./hh-1./2)**2)**.5
+            ind = c.near > weight[i:i+hh,j:j+ww]
+            c.re[i:i+hh,j:j+ww][ind]= sre[ind]
+            weight[i:i+hh,j:j+ww][ind]= c.near[ind]
             return
-        resoult = c.re
         oldw = weight[i:i+hh,j:j+ww]
         ws = weightCore
         if sre.ndim!=2:
             ws = ws[...,None]
             oldw = oldw[...,None]
-    #    map(loga,[ws,sre,resoult,oldw,resoult[i:i+hh,j:j+ww]*oldw])
-        resoult[i:i+hh,j:j+ww] = (ws*sre + resoult[i:i+hh,j:j+ww]*oldw)/(ws+oldw)
+    #    map(loga,[ws,sre,c.re,oldw,c.re[i:i+hh,j:j+ww]*oldw])
+        c.re[i:i+hh,j:j+ww] = (ws*sre + c.re[i:i+hh,j:j+ww]*oldw)/(ws+oldw)
         weight[i:i+hh,j:j+ww] += weightCore
-    #    show(resoult,weight)
-    simgs = smallImg(img,hh,ww,step=step,f=f)
-    (simgs)
-    resoult = c.re
-#    show(weight,resoult)
-    return resoult
+    #    show(c.re,weight)
+    (smallImg(img,(hh,ww),step=step,f=f))
+    return c.re
 
 class ArgList(list):
     '''
@@ -207,13 +298,14 @@ class ArgList(list):
     pass
 
     
-def autoFindBestParams(c, args,evaluFun,sortkey=None):
+def autoFindBestParams(c, args,evaluFun,sortkey=None, savefig=False):
     '''遍历args里面 ArgList的所有参数组合 并通过sortkey 找出最佳参数组合
     
     Parameters
     ----------
     c : dicto
-        测试集的所有环境配置 c，包含 names, toimg 及 getPredict 等key
+        即configManager 生成的测试集的所有环境配置 c
+        包含args，数据配置，各类函数等
     args : dicto
         predict的参数，但需要包含 ArgList 类 将遍历ArgList的所有参数组合 并找出最佳参数组合
     evaluFun : Funcation
@@ -264,11 +356,11 @@ def autoFindBestParams(c, args,evaluFun,sortkey=None):
         reload(c.predictInterface)
         predict = c.predictInterface.predict
         for name in c.names[::]:
-            gt = c.readgt(name)>0
+            gt = c.readgt(name)
             prob = predict(c.toimg(name))
             re = prob.argmax(2)
-            from yllab import g
-            g.re,g.gt = re,gt
+#            from yllab import g
+#            g.re,g.gt = re,gt
             e.evalu(re,gt,name)
     #        img = readimg(name)
     #        show(re,gt)
@@ -279,19 +371,32 @@ def autoFindBestParams(c, args,evaluFun,sortkey=None):
         for k,v in arg.items():
             e[k] = v
         edic[keys] = e
-        print keys, e.mean()
+        print 'arg: %s\n'%str(arg), e.mean()
     es = pddf(map(lambda x:pds(x.mean()), edic.values()))
     print '-'*20+'\nmax %s:\n'%sortkey,es.loc[es[sortkey].argmax()]
     print '\nmin %s:\n'%sortkey,es.loc[es[sortkey].argmin()]
+    if len(iters) == 1:
+        k = iters[0][0]
+        import matplotlib.pyplot as plt
+        df = es.copy()
+        df = df.sort_values(k)
+        plt.plot(df[k],df[sortkey],'--');plt.plot(df[k],df[sortkey],'rx')
+        plt.xlabel(k);plt.ylabel(sortkey);plt.grid()
+        if savefig:
+            plt.savefig(savefig)
+            plt.close()
+        else:
+            plt.show()    
     return es
 
-def autoFindBestEpoch(c, args,evaluFun,epochs=None,sortkey=None):
+def autoFindBestEpoch(c, evaluFun,sortkey=None,epochs=None, savefig=False):
     '''遍历所有epoch的weight  并通过测试集评估项sortkey 找出最佳epoch
     
     Parameters
     ----------
-    args : dict
-        predict的参数
+    c : dicto
+        即configManager 生成的测试集的所有环境配置 c
+        包含args，数据配置，各类函数等
     evaluFun : Funcation
         用于评测的函数，用于Evalu类 需要返回dict对象
     sortkey : str, default None
@@ -300,6 +405,7 @@ def autoFindBestEpoch(c, args,evaluFun,epochs=None,sortkey=None):
     Return: DataFrame
         每个参数组合及其评价的平均值
     '''
+    args = c.args
     if not isinstance(epochs,(tuple,list)) :
         pas = [p[len(args.prefix):] for p in glob(args.prefix+'*') if p[-4:]!='json']
         eps = map(lambda s:len(findints(s)) and findints(s)[-1],pas)
@@ -311,7 +417,8 @@ def autoFindBestEpoch(c, args,evaluFun,epochs=None,sortkey=None):
             epochs = range(minn,maxx+1)
     args['restore'] = ArgList(epochs)
 #    print epochs
-    return autoFindBestParams(c, args,evaluFun,sortkey=sortkey)
+    df = autoFindBestParams(c, args, evaluFun,sortkey=sortkey,savefig=savefig)
+    return df
 
 if __name__ == '__main__':
     pass

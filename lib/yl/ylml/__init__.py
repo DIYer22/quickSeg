@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from ylmlTrain import GenSimg
 
 from ylmlTest import (binaryDiff, classDiff, drawBoundAndBackground, 
+                      confusionMatrix, f1Score,
                       getWeightCore, smallImg, autoSegmentWholeImg,
                       ArgList, autoFindBestEpoch, autoFindBestParams)
 
-from ylmlEvalu import (Evalu, binaryEvalu,binaryDivEvalu, lplrEvalu, 
-                       diceEvalu, diceDivEvalu)
+from ylmlEvalu import (Evalu, accEvalu, lplrEvalu, diceEvalu, pd)
 
 if __name__ == "__main__":
     pass

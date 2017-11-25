@@ -9,20 +9,24 @@ from toolLog import (stdout, log, tounicode, ignoreWarning,
 from toolLog import colorFormat, pblue, pred, pdanger, perr, pinfo
 from toolLog import localTimeStr, gmtTimeStr
 
-from toolDataStructureAndObject import (dicToObj, dicto, 
+from toolStructObj import (dicToObj, dicto, 
                                         listToBatch, FunAddMagicMethod)
 
 from toolIo import (listdir, filename, openread, openwrite, replaceTabInPy, save_data, 
                     load_data, fileJoinPath)
 
-from toolSystem import importAllFunCode, crun, frun, getArgvDic
+from toolSystem import (importAllFunCode, crun, frun, timeit, heatMap, 
+                        getArgvDic, softInPath, addPathToSys)
 
-from toolFuncation import getFunName, dynamicWraps, setInterval, setTimeOut
+from toolFuncation import (getFunName, dynamicWraps, setTimeOut,
+                           setInterval, multiThread, mapmp, mapmt)
 
-from toolTools import filterList, findints
+from toolTools import (filterList, findints, randint, randfloat, randchoice,
+                       listdirWithFun, replaceAllInRoot)
 
 from glob import glob
 from collections import namedtuple
+from collections import defaultdict as dictd
 from functools import reduce
 from os.path import join as pathjoin
 from os.path import basename, isfile, isdir, dirname
@@ -30,7 +34,7 @@ from operator import add, sub, mul, div
 
 if __name__ == "__main__":
     p = False
-#    p = True
+    p = True
     if p:
         import toolTools as tt
         ttl = dir(tt)
@@ -48,7 +52,7 @@ if __name__ == "__main__":
         til = dir(ti)
         print(til)
         
-        import toolDataStructureAndObject as tdo
+        import toolStructObj as tdo
         tdol = dir(tdo)
         print(tdol)
         

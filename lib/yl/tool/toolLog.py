@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import os,sys,time
-from toolDataStructureAndObject import addCall,dicto,FunAddMagicMethod
+from toolStructObj import addCall,dicto,FunAddMagicMethod
 
 def localTimeStr():
     '''
@@ -80,18 +80,19 @@ def stdout(*l):
         return l[0]
     return l
 
-def logg(*l,**dic):
+def log(*l,**dic):
     if len(l) == 1:
         pblue(l[0])
-        return l[0]
-    pblue('\n'.join(map(tounicode,l)))
+    else:
+        pblue('\n'.join(map(tounicode,l)))
     if len(dic):
         for k in dic:
             pblue('%s = %s'%(k,tounicode(dic[k])))
-    return l
+    if len(l) == 1:
+        return l[0]
 class LogAndSaveToList(list):
     '''
-    存储最近用于log的结果, 并返回x的超级函数
+    存储最近用于logg的结果, 并返回x的class, list版本SuperG
     '''
     def __init__(self,printFun=None,cache=5):
         self.p = printFun or pblue
@@ -128,13 +129,12 @@ class LogAndSaveToList(list):
         return l
     __sub__ = __lshift__ = __rshift__  = __div__ = __call__
     def __repr__(self):
-        blue  = '\x1b[%dm%s\x1b[0m'%(frontColorDic['red'],tounicode(self[len(self)-1]))
+        blue  = '\x1b[%dm%s\x1b[0m'%(frontColorDic['red'],tounicode(len(self) and self[len(self)-1]))
         return '''LogAndSaveToList(printFun=%s, cache=%s) log[-1]: %s'''%(
         str(self.p),self.cache,blue)
     __str__ = __repr__
-        
-    
-log = LogAndSaveToList()
+
+logg = LogAndSaveToList()
 pcyan,pred,ppurple,stdout = map(FunAddMagicMethod,
                                         [pcyan,pred,ppurple,stdout])
     

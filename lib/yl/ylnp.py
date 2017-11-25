@@ -6,11 +6,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tool.toolTools import filterList
 
-def savenp(path, arr):
+def savenp(path, arr=None):
     '''压缩存储 np.array 为path路径 
     ps: int, bool 压缩效果佳 可达到20倍'''
+    if isinstance(path,np.ndarray) and arr is None:
+        path,arr = 'savenp_default.npz',path
     np.savez_compressed(path, arr)
-def loadnp(path):
+def loadnp(path='savenp_default.npz'):
     '''读取path路径下的 .npz 返回 np.array'''
     if path[-4:] != '.npz':
         path += '.npz'

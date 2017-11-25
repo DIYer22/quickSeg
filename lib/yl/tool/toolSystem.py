@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import sys
+import sys, os, time
 
 def importAllFunCode(mod=None):
     '''
@@ -23,13 +23,23 @@ def importAllFunCode(mod=None):
     lines += [', '.join(names)]
     lines = ',\n          '.join(lines)
     
-    strr = (("from %s import *\nfrom %s import (%s)"%(mod.__name__,mod.__name__,lines)))
+    strr = (("from %s import *\n    from %s import (%s)"%(mod.__name__,mod.__name__,lines)))
+    strr = '''from %s import *
+try:
+    from %s import (%s)
+except ImportError:
+    pass'''%(mod.__name__,mod.__name__,lines)
     print strr
 
-def crun(pycode):
+def crun(pycode, snakeviz=True):
     '''测试代码pycode的性能'''
     from cProfile import run
-    return run(pycode,sort='time')
+    if not snakeviz:
+        return run(pycode,sort='time')
+    run(pycode, "/tmp/snakeviz.result")
+    os.system('snakeviz /tmp/snakeviz.result &')
+    
+    
 def frun(pyFileName=None):
     '''在spyder中 测试pyFileName的性能'''
     if pyFileName:
@@ -39,7 +49,68 @@ def frun(pyFileName=None):
     else:
         crun("runfile(__file__,wdir='.')")
 
+class timeit():
+    '''
+    记时 :
+        >>> ti = timeit()
+        # run your code
+        >>> print ti()
+    记时2 :
+        >>> with timeit():
+        >>>     fun()
+        
+    测试code时间 :
+        >>> timeit(your_code)
+    '''
+    def __init__(self,code=''):
+        self.begin = time.time()
+        if len(code):
+            exec code
+            print self.s
+    def __call__(self):
+        '''返回时间差'''
+        return time.time()-self.begin
+    def __enter__(self):
+        return self
+    def __exit__(self, typee, value, traceback):
+        self.p
+    @property
+    def s(self):
+        t = time.time()-self.begin
+        s='\x1b[36mspend time: %s\x1b[0m'%t
+        return s
+    @property
+    def p(self):
+        '''直接打印出来'''
+        print self.s
 
+def heatMap(pathOrCode):
+    '''显示python代码的时间热力图
+    ps.会让代码里面的中文全部失效
+    
+    Parameters
+    ----------
+    path : str of code or path of .py
+        .py文件路径或着python代码
+    '''
+    from pyheat import PyHeat
+    path = '/tmp/pyheat-tmp.py'
+    code = pathOrCode
+    try :
+        if os.path.isfile(pathOrCode):
+            path = pathOrCode+'_HEAT_MAP_TMP.py'
+            with open(pathOrCode) as f:
+                code = f.read()
+        code = code.decode('ascii','replace').replace(u'\ufffd','$?')
+        with open(path,'w') as f:
+            f.write(code)
+        ph = PyHeat(path)
+        ph.create_heatmap()
+        ph.show_heatmap()
+    finally:
+        if os.path.isfile(path):
+            os.remove(path)
+        
 def strIsInt(s):
     '''判断字符串是不是整数型'''
     s = s.replace(' ','')
@@ -59,8 +130,16 @@ def strToNum(s):
 
 def getArgvDic(argvTest=None):
     '''
-    将`python main.py xxx --k v`形式的命令行参数转换为list, dict
-    若v是数字 将自动转换为 int or float
+    将cmd的`python main.py arg1 arg2 --k v --tag`形式的命令行参数转换为(list, dict)
+    若v是数字 将自动转换为 int or float, --tag 将表示为 dic[tag]=True
+    
+    Return
+    ----------
+    l : list
+        去除第一个参数 文件地址外的 第一个 '--'之前的所有参数
+    dic : dict
+        `--k v` 将以{k: v}形式存放在dic中
+        `--tag` 将以{k: True}形式存放在dic中
     '''
     from toolLog import  pred
     argv = sys.argv
@@ -84,7 +163,33 @@ def getArgvDic(argvTest=None):
     if len(dic) or len(l):
         pred('command-line arguments are:\n  %s and %s'%(l,dic))
     return l,dic
-    
+
+
+def softInPath(softName):
+    '''
+    是否安装命令为softName的软件，即 判断softName 是否在环境变量里面
+    '''
+    for p in os.environ['PATH'].split(':'):
+        if os.path.isdir(p) and softName in os.listdir(p):
+            return True
+    return False
+
+def addPathToSys(_file_, pathToJoin='.'):
+    '''
+    将 join(__file__, pathToJoin)  加入 sys.path
+
+    Parameters
+    ----------
+    _file_ : str
+        .py 文件的路径 即__file__ 变量
+    pathToJoin : str, default '.'
+        相对路径
+    '''
+    from os.path import abspath,join,dirname
+    apath = abspath(join(dirname(abspath(_file_)),pathToJoin))
+    if apath not in sys.path:
+        sys.path.append(apath)
+    return apath
 if __name__ == "__main__":
 
     pass

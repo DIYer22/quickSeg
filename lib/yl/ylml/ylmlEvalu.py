@@ -12,25 +12,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def binaryEvalu(re, gt):
+def accEvalu(re, gt):
     '''评估二分类分割问题 返回dict 包含 acc 和 loss
     
     Parameters
     ----------
     re : np.ndarray
-        resoult, 负样本必须 <= 0
+        resoult or prob, 标签或h*w*n 的概率矩阵
     gt : np.ndarray of bool
-        ground Truth, 值必须是bool或[0, 1]
+        ground Truth, 值为每个像素的类别
     '''
-    re = re > 0
+    if re.ndim == 3:
+        re = re.argmax(2)
     acc = (re==gt).sum()/float(gt.shape[0]*gt.shape[1])*100
     return {'acc':acc,'loss':100-acc}
     
-def binaryDivEvalu(probDiv,gt):
-    '''评估二分类分割问题 返回dict 包含 acc 和 loss
-    probDiv : 第[1]类的概率减去第[0]类的概率 即: prob[...,1]-prob[...,0]
-    '''
-    return binaryEvalu(probDiv>0,gt)
 
 def lplrEvalu(re, gt):
     '''评估二分类分割问题 返回dict 包含 ['LP', 'LR', 'OP', 'OR','me']'''
@@ -54,12 +50,19 @@ def lplrEvalu(re, gt):
     return {k:100*(1-v) for k,v in zip(['LP', 'LR', 'OP', 'OR','me'],[LP,LR,OP,OR,mean])}
 
 def diceEvalu(re,gt):
-    ''' Dice coefficient 方法评估二分类分割问题 返回dict 包含 ['dice', 'loss']'''
-    re = re > 0
+    ''' Dice coefficient 方法评估二分类分割问题 返回dict 包含 ['dice', 'loss']
+    
+    Parameters
+    ----------
+    re : np.ndarray
+        resoult or prob, 标签或h*w*n 的概率矩阵
+    gt : np.ndarray of bool
+        ground Truth, 值为每个像素的类别
+        '''
+    if re.ndim == 3:
+        re = re.argmax(2)
     dice = (re*gt).sum()*2/float(re.sum()+gt.sum())*100
     return {'dice':dice,'loss':100-dice,}
-def diceDivEvalu(probDiv,gt):
-    return diceEvalu(probDiv>0,gt)
 
 
 
@@ -70,17 +73,18 @@ class Evalu(pd.DataFrame):
 并能以DataFrame的形似对评估结果操作与分析
 常用缩写：
     * evalu = Evalu的实例
-    * re = 需要评测的样本 resoult
-    * gt = 用于评测的真值 GroundTruth
+    * re = resoult, 需要评测的样本 
+    * gt = GroundTruth, 用于评测的真值 
     * key = 评测项的名称 即列的名称 属于 self.columns
     * df = pd.DataFrame 实例
+    * prob = 分割的概率矩阵 ，即shape为 h*w*n 的矩阵(n 表示类别数)
     
 功能
 --------
 自动log :
     对每个样本 自动log出当前进度，当前迭代花费的时间，及评估结果
-自动保存resoult :
-    自动将用来评估的resoult保存为压缩的npz格式
+保存resoult :
+    将用来评估的resoult保存为压缩的npz格式
     通过 evalu.re(name) 或者evalu[name] 来调用
 载入之前的评估结果 :
     将loadcsv=True 或者 对应评估结果csv的路径即可载入
@@ -114,7 +118,7 @@ e.distr()
                  logFormat=None,
                  sortkey=None,
                  loadcsv=False,
-                 saveResoult = True,
+                 saveResoult = False,
                  loged=True,
                  savepath='./val/',
                  ):
@@ -139,8 +143,9 @@ sortkey : str, default None
 loadcsv : bool or str, default False
     载入已保存的csv 默认不载入，为True时候则载入，
     为str时候则载入str对应的path的csv
-saveResoult : bool, default True
-    是否保存resoult 默认为True
+saveResoult : bool or funcation, default False
+    是否保存resoult 默认为False ,True  则保存 re
+    若为funcation 则保存 saveResoult(re) 为 .npz格式
 loged : bool, default True
     是否每次评估都打印出结果 默认为打印
 savepath : str, default './val/'
@@ -148,7 +153,7 @@ savepath : str, default './val/'
 
 Examples
 --------
-e = Evalu(binaryEvalu,
+e = Evalu(accEvalu,
           evaluName='binary segment evalu',
           valNames=names,
           logFormat='acc:{acc:.4f}, loss:{loss:.4f}',
@@ -233,7 +238,12 @@ e = Evalu(binaryEvalu,
     def _savere(self,name,re):
         self.__makedirs()
         npname = pathjoin(self.evaluDir,'npzs',name)
-        savenp(npname,re)
+        if '__call__' in dir(self.saveResoult) :
+            savenp(npname,self.saveResoult(re))
+        else:
+            if re.ndim == 3:
+                re = np.uint8(re.argmax(2))
+            savenp(npname,re)
     def re(self,name=-1):
         '''return np.array, 返回自动保存下来的np.array 样本
         
