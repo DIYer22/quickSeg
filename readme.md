@@ -1,4 +1,4 @@
-# deep517：基于Python的图像分割脚手架+模型库
+# quickSeg：基于Python的图像分割脚手架+模型库
 
 ## 目录：
 
@@ -11,7 +11,7 @@
 
 
 ## Introduction
-deep517：基于Python的图像分割脚手架+模型库
+quickSeg：基于Python的图像分割脚手架+模型库
 
 ### 环境
 
@@ -30,7 +30,7 @@ deep517：基于Python的图像分割脚手架+模型库
 ## 文件结构
 
 ```
-deep517
+quickSeg
 │
 ├── lib  # 存放函数库
 │   ├── configManager.py  # 用于存放，处理参数及自动生成各类io函数
@@ -50,7 +50,7 @@ deep517
 ├── projects # 工作空间 以项目名称为文件夹
 │   └── projectTemplate # 项目模板 新建项目：复制并重命名文件夹为项目名称
 │       └── experment1 # 实验文件夹 新建实验：复制重命名文件夹为实验名称
-│           ├── lib.py     # 将 deep517/lib/ 下的所有moudlu导入并加入 sys.path
+│           ├── lib.py     # 将 quickSeg/lib/ 下的所有moudlu导入并加入 sys.path
 │           ├── config.py  # 配置训练集，测试集，预测集， 选择net
 │           ├── train.py   # 配置训练的参数并训练
 │           ├── test.py    # 使用训练好的模型对测试集进行预测
@@ -125,7 +125,7 @@ train.py主要配置train的参数
 
 ## 面向网络开发者
 
-要更改网络结构或开发新的网络时，先将 `deep517/nets/netTemplate` 下的 `trainInterface.py` 和 `trainInterface.py` 复制到你的实验文件夹下,参考这两个接口进行修改和开发
+要更改网络结构或开发新的网络时，先将 `quickSeg/nets/netTemplate` 下的 `trainInterface.py` 和 `trainInterface.py` 复制到你的实验文件夹下,参考这两个接口进行修改和开发
 
 开发完成后 只需在nets下新建文件夹 命名为你网络的名称即可 欢迎`git push origin master`提交你的net
 
@@ -146,7 +146,7 @@ cache: 缓存图片数目, 默认缓存1Gb的数目
 timesPerRead: 平均每次读的图片使用多少次(不会影响总迭代次数),默认1次
 iters: 固定输出小图片的总数目，与batch无关
 infinity: 无限迭代
-File:           deep517/lib/yl/ylml/ylmlTrain.py
+File:           quickSeg/lib/yl/ylml/ylmlTrain.py
 Type:           ABCMeta
 ```
 
@@ -163,7 +163,7 @@ handleSimg: 用于处理小图片的函数 handleSimg(simg)，比如 net.pridict
 step: 切割的步长, 默认为simgShape 可以为int|tuple(steph,stepw)|float
 weightCore: 'avg'取平均,'gauss'结果的权重 在重叠部分可以用到
 使之越靠经中心的权重越高 默认为直接覆盖
-File:      deep517/lib/yl/ylml/ylmlTest.py
+File:      quickSeg/lib/yl/ylml/ylmlTest.py
 Type:      function
 ```
 
